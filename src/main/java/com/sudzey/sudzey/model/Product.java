@@ -1,19 +1,25 @@
 package com.sudzey.sudzey.model;
 
-import lombok.Data;
-import org.springframework.data.annotation.Id;
+import jakarta.persistence.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Data
-@Document(collection = "products")  // Specifies the MongoDB collection
-public class Product {
+import java.util.List;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+
+@Document(collection = "products")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Product {
     @Id
     private String id;
-
     private String name;
-    private String description;
     private double price;
-    private int quantity;
-
+    private int stock;
+    private List<String> images;
+    private String categoryId;
 }

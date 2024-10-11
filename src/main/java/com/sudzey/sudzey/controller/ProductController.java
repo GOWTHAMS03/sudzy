@@ -2,34 +2,46 @@ package com.sudzey.sudzey.controller;
 
 import com.sudzey.sudzey.model.Product;
 import com.sudzey.sudzey.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
 @RestController
-@RequestMapping("/api/products")
+@RequestMapping("/api/v1/products")
 public class ProductController {
 
-    @Autowired
-    private ProductService productService;
+    private final ProductService productService;
 
-    @GetMapping("/")
+    public ProductController(ProductService productService) {
+        this.productService = productService;
+    }
+
+    @GetMapping("/getallproduct")
     public ResponseEntity<List<Product>> getAllProducts() {
         List<Product> products = productService.getAllProducts();
         return ResponseEntity.ok(products);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
+    @GetMapping("/getbyid/{id}")
+    public ResponseEntity<Product> getProductById(@PathVariable String id) {
         Product product = productService.getProductById(id);
         return product != null ? ResponseEntity.ok(product) : ResponseEntity.notFound().build();
     }
 
-    @PostMapping("/")
-    public ResponseEntity<Product> createProduct(@RequestBody Product product) {
-        Product createdProduct = productService.saveProduct(product);
-        return ResponseEntity.status(201).body(createdProduct);
+    @GetMapping("/search")
+    public ResponseEntity<List<Product>> searchProducts(@RequestParam String query) {
+        List<Product> products = productService.searchProducts(query);
+        return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("/paginated")
+    public ResponseEntity<Page<Product>> getAllProductsPaginated(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<Product> products = productService.getAllProductsPaginated(PageRequest.of(page, size));
+        return ResponseEntity.ok(products);
     }
 }
