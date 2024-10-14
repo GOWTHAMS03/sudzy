@@ -13,6 +13,6 @@ public class Cart {
 
     @Id
     private String id;
-    private String userId; // User's ID
-    private Map<String, Integer> products = new HashMap<>(); // Product ID and quantity
+    private String userId;
+    private Map<String, Integer> products = new HashMap<>();
 }

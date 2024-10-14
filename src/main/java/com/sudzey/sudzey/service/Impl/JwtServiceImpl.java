@@ -3,18 +3,23 @@ package com.sudzey.sudzey.service.Impl;
 
 import com.sudzey.sudzey.service.JwtService;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
-import java.util.Date;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,23 +29,38 @@ public class JwtServiceImpl implements JwtService {
     private String secretKey;
 
     private Key signingKey;
+    private static final Logger logger = LoggerFactory.getLogger(JwtServiceImpl.class);
+
 
     @PostConstruct
     private void init() {
-        // Initialize the signing key using the secret key
         signingKey = Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
     // Generate token
     @Override
     public String generateToken(UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+
+        // Collect and add roles to the claims
+        claims.put("roles", userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList()));
+
+        long expirationTimeMillis = 60L * 24 * 60 * 60 * 1000;
+        Date expirationDate = new Date(System.currentTimeMillis() + expirationTimeMillis);
+
+        logger.info("Generating token for user: {}", userDetails.getUsername());
+
         return Jwts.builder()
+                .setClaims(claims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24)) // Token valid for 24 minutes
+                .setExpiration(expirationDate)
                 .signWith(signingKey, SignatureAlgorithm.HS256)
                 .compact();
     }
+
 
     // Extract username from token
     @Override
@@ -55,12 +75,17 @@ public class JwtServiceImpl implements JwtService {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(signingKey)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(signingKey)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (JwtException e) {
+            throw new RuntimeException("Invalid JWT token", e);
+        }
     }
+
 
     // Get expiration date from token
     @Override
@@ -78,6 +103,17 @@ public class JwtServiceImpl implements JwtService {
     @Override
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = extractUserName(token);
+        final Claims claims = extractAllClaims(token);
+
+        // Extract roles from token
+        List<String> roles = (List<String>) claims.get("roles");
+
+        // Ensure roles and username match
+        logger.info("Validating token for user: {} with roles: {}", username, roles);
+
+        // Check if username matches and token is not expired
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
+
+
 }

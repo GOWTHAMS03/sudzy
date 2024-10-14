@@ -1,6 +1,8 @@
 package com.sudzey.sudzey.controller;
 
+import com.sudzey.sudzey.dto.ProductDTO;
 import com.sudzey.sudzey.model.Product;
+import com.sudzey.sudzey.model.Review;
 import com.sudzey.sudzey.service.ProductService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,11 +26,21 @@ public class ProductController {
         return ResponseEntity.ok(products);
     }
 
-    @GetMapping("/getbyid/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable String id) {
+    @GetMapping("/{id}")
+    public ResponseEntity<ProductDTO> getProductById(@PathVariable String id) {
         Product product = productService.getProductById(id);
-        return product != null ? ResponseEntity.ok(product) : ResponseEntity.notFound().build();
-    }
+        if (product != null) {
+            // Increment product views
+            product.setViews(product.getViews() + 1);
+            productService.updateProductViews(product);
+
+            // Update trending status based on views
+            productService.updateProductStatus(product);
+        }
+
+        ProductDTO productDTO = productService.convertToDTO(product);
+        return ResponseEntity.ok(productDTO);
+           }
 
     @GetMapping("/search")
     public ResponseEntity<List<Product>> searchProducts(@RequestParam String query) {
@@ -43,5 +55,33 @@ public class ProductController {
     ) {
         Page<Product> products = productService.getAllProductsPaginated(PageRequest.of(page, size));
         return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("/trending")
+    public ResponseEntity<List<ProductDTO>> getTrendingProducts() {
+        List<ProductDTO> trendingProducts = productService.getTrendingProducts();
+        return ResponseEntity.ok(trendingProducts);
+    }
+
+    @GetMapping("/bestsellers")
+    public ResponseEntity<List<ProductDTO>> getBestsellerProducts() {
+        List<ProductDTO> bestsellerProducts = productService.getBestsellerProducts();
+        return ResponseEntity.ok(bestsellerProducts);
+    }
+
+    @PostMapping("/{productId}/reviews")
+    public ResponseEntity<String> addReview(
+            @RequestParam String userId,
+            @PathVariable String productId,
+            @RequestParam String content,
+            @RequestParam int rating) {
+        productService.addReview(userId, productId, content, rating);
+        return ResponseEntity.ok("Review added successfully");
+    }
+
+    @GetMapping("/{productId}/reviews")
+    public ResponseEntity<List<Review>> getReviewsForProduct(@PathVariable String productId) {
+        List<Review> reviews = productService.getReviewsForProduct(productId);
+        return ResponseEntity.ok(reviews);
     }
 }

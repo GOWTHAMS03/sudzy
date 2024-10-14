@@ -6,6 +6,7 @@ import com.sudzey.sudzey.service.WishlistService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Optional;
 
 @Service
@@ -26,8 +27,11 @@ public class WishlistServiceImpl implements WishlistService {
     @Override
     public Wishlist addProductToWishlist(String userId, String productId) {
         Wishlist wishlist = getWishlistByUserId(userId);
-        if (!wishlist.getProductIds().contains(productId)) {
-            wishlist.getProductIds().add(productId);
+        if(wishlist.getProductId()==null){
+            wishlist.setProductId(new ArrayList<>());
+        }
+        if (!wishlist.getProductId().contains(productId)) {
+            wishlist.getProductId().add(productId);
         }
         return wishlistRepository.save(wishlist);
     }
@@ -35,7 +39,7 @@ public class WishlistServiceImpl implements WishlistService {
     @Override
     public Wishlist removeProductFromWishlist(String userId, String productId) {
         Wishlist wishlist = getWishlistByUserId(userId);
-        wishlist.getProductIds().remove(productId);
+        wishlist.getProductId().remove(productId);
         return wishlistRepository.save(wishlist);
     }
 }

@@ -10,6 +10,6 @@ public class Category {
 
     @Id
     private String id;
-    private String name; // Category name
-    private String description; // Optional description of the category
+    private String name;
+    private String description;
 }

@@ -1,5 +1,6 @@
 package com.sudzey.sudzey.service.Impl;
 
+import com.sudzey.sudzey.dto.CategoryDTO;
 import com.sudzey.sudzey.model.Category;
 import com.sudzey.sudzey.repository.CategoryRepository;
 import com.sudzey.sudzey.service.CategoryService;
@@ -15,7 +16,10 @@ public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
 
     @Override
-    public Category createCategory(Category category) {
+    public Category createCategory(CategoryDTO categoryDTO) {
+        Category category = new Category();
+        category.setName(categoryDTO.getName());
+        category.setDescription(categoryDTO.getDescription());
         return categoryRepository.save(category);
     }
 

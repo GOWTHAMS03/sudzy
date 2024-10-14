@@ -3,8 +3,6 @@ package com.sudzey.sudzey.controller;
 import com.sudzey.sudzey.dto.OrderDTO;
 import com.sudzey.sudzey.model.Order;
 import com.sudzey.sudzey.service.OrderService;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,6 +28,13 @@ public class OrderController {
     public ResponseEntity<Order> updateOrderStatus(@PathVariable String id, @RequestParam String status) {
         Order updatedOrder = orderService.updateOrderStatus(id, status);
         return updatedOrder != null ? ResponseEntity.ok(updatedOrder) : ResponseEntity.notFound().build();
+    }
+
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Order> getOrderById(@PathVariable String id) {
+        Order order = orderService.getOrderById(id);
+        return ResponseEntity.ok(order);
     }
 
     @GetMapping("/user/{userId}")

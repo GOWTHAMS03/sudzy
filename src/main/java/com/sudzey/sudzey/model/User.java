@@ -20,6 +20,7 @@ public class User implements UserDetails {
     private String email;
     private String password;
     private Role role;
+    private List<String> purchasedProductIds;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

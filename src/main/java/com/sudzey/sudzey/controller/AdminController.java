@@ -1,5 +1,6 @@
 package com.sudzey.sudzey.controller;
 
+import com.sudzey.sudzey.dto.CategoryDTO;
 import com.sudzey.sudzey.dto.ProductDTO;
 import com.sudzey.sudzey.model.Category;
 import com.sudzey.sudzey.model.Order;
@@ -10,9 +11,13 @@ import com.sudzey.sudzey.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -31,13 +36,20 @@ public class AdminController {
     }
 
 
-//    product control
-        @PostMapping("/admin/create")
+        //    product control
+        @PostMapping("/createproduct")
         @PreAuthorize("hasRole('ADMIN')")
-        public ResponseEntity<String> createProduct(@RequestBody ProductDTO productDTO, @RequestParam String categoryId) {
-            productService.createProduct(productDTO, categoryId);
-            return ResponseEntity.ok("Product created successfully!");
+        public ResponseEntity<Map<String, Object>> createProduct(@RequestBody ProductDTO productDTO) {
+            Product response = productService.createProduct(productDTO);
+            Map<String, Object> responseBody = new HashMap<>();
+            responseBody.put("message", "Product created successfully!");
+            responseBody.put("product", response);
+
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body(responseBody);
         }
+
 
 
 
@@ -68,6 +80,15 @@ public class AdminController {
     ) {
         Page<Order> orders = orderService.getAllOrders(PageRequest.of(page, size));
         return ResponseEntity.ok(orders);
+    }
+
+
+    //category
+
+    @PostMapping("/createcategory")
+    public ResponseEntity<String> createCategory(@RequestBody CategoryDTO categoryDTO) {
+        categoryService.createCategory(categoryDTO);
+        return ResponseEntity.ok("Category created successfully!");
     }
 
 }
